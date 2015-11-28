@@ -1,0 +1,23 @@
+{
+  "name": "meadowlark",
+  "version": "1.0.0",
+  "description": "Travel website",
+  "main": "meadowlark.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charlieharris1/travelsite.git"
+  },
+  "author": "Charlie Harris",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/charlieharris1/travelsite/issues"
+  },
+  "homepage": "https://github.com/charlieharris1/travelsite#readme",
+  "dependencies": {
+    "express": "^4.13.3",
+    "express-handlebars": "^2.0.1"
+  }
+}
