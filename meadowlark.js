@@ -1,17 +1,10 @@
 //  this is the projects entry point (aka app file)
 var express = require('express');
+var fortune = require('./lib/fortune.js');
 
 var app = express();
 // set up handlebars view engine. This creates a view engine and configures Express to use it by default. 
 var handlebars = require('express-handlebars').create({ defaultLayout:'main' }); // default layout main means that unless you specify, this layout will be used for any view.
-
-var fortunes = [
-	"Conquer your feats or they will conquer you.",
-	"Rivers need springs.",
-	"Do not fear what you don't know",
-	"You will have a pleasant suprise",
-	"Whenever possible keep it simple",
-];
 
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
@@ -23,6 +16,13 @@ app.set('port', process.env.PORT || 3000);
 // the static middleware has the same effect as creating a route for each static file you want to deliver that renders a file and returns it to the client. 
 app.use(express.static(__dirname + '/public'));
 
+app.use(function(req, res, next){
+	// this line of code means that if test=1 appears in the querystring for any page(and were not running on the production server), the property res.local.showTests will be true.
+	// the res.locals object is part of the context that will be passed to views.
+	res.locals.showTests = app.get('env') !== 'production' && req.query.test === '1';
+	next();
+});
+
 // route
 app.get('/', function (req, res){ // req = request object and res = response object
 	res.render('home')
@@ -30,8 +30,7 @@ app.get('/', function (req, res){ // req = request object and res = response obj
 
 // about
 app.get('/about', function (req, res){ // get is one of a number of HTTP verbs. GET and POST are the most common. 
-	var randomFortune = fortunes[Math.floor(Math.random()*fortunes.length)];
-	res.render('about', { fortune: randomFortune });
+	res.render('about', { fortune: fortune.getFortune() });
 });
 
 // custom 404 page

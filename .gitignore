@@ -3,3 +3,4 @@ node_modules
 
 # other files I don't want to check in
 .DS_Store
+*_
