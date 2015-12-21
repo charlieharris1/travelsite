@@ -30,7 +30,18 @@ app.get('/', function (req, res){ // req = request object and res = response obj
 
 // about
 app.get('/about', function (req, res){ // get is one of a number of HTTP verbs. GET and POST are the most common. 
-	res.render('about', { fortune: fortune.getFortune() });
+	res.render('about', { 
+		fortune: fortune.getFortune(),
+		pageTestScript: '/qa/tests-about.js'
+	});
+});
+
+app.get('/tours/hood-river', function (req, res){
+	res.render('tours/hood-river');
+});
+
+app.get('tours/request/group-rate', function (req, res){
+	res.render('tours/request-group-rate');
 });
 
 // custom 404 page
