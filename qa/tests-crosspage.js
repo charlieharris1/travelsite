@@ -14,6 +14,7 @@ suite('Cross-Page Tests', function(){
 		var referrer = 'http://localhost:3000/tours/hood-river';
 		browser.visit(referrer, function(){
 			browser.clickLink('.requestGroupRate', function(){
+				// browser.field method returns a DOM element object which has a value property
 				assert(browser.field('referrer').value === referrer);
 				done();
 			});
@@ -25,12 +26,13 @@ suite('Cross-Page Tests', function(){
 		var referrer = 'http://localhost:3000/tours/oregon-coast';
 		browser.visit(referrer, function(){
 			browser.clickLink('.requestGroupRate', function(){
+				// browser.field method returns a DOM element object which has a value property
 				assert(browser.field('referrer').value === referrer);
 				done();
 			});
 		});
 	});
-
+	// test ensures that referrer is empty when the page is visited directly
 	test('visiting the "request group rate" page dirctly should result ' +
 			'in an empty value for the referrer field', function(done){
 		browser.visit('http://localhost:3000/tours/request-group-rate', function(){

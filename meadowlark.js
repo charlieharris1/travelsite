@@ -3,9 +3,37 @@ var fortune = require('./lib/fortune.js');
 
 var app = express();
 
+// dummy function to get the current weather data
+function getWeatherData(){
+	return {
+		locations: [
+			{
+				name: 'Portland',
+				forecastUrl: 'http://www.wunderground.com/US/OR/Portland.html',
+				iconUrl: 'http://icons-ak.wxug.com/i/c/k/cloudy.gif',
+				weather: 'Overcast',
+				temp: '54.1 F (12.3 C)',
+			},
+			{
+				name: 'Bend',
+				forecastUrl: 'http://www.wunderground.com/US/OR/Bend.html',
+				iconUrl: 'http://icons-ak.wxug.com/i/c/k/partlycloudy.gif',
+				weather: 'Partly Cloudy',
+				temp: '55.0 F (12.8 C)',
+			},
+			{
+				name: 'Manzanita',
+				forecastUrl: 'http://www.wunderground.com/US/OR/Manzanita.html',
+				iconUrl: 'http://icons-ak.wxug.com/i/c/k/rain.gif',
+				weather: 'Light Rain',
+				temp: '55.0 F (12.8 C)',
+			},
+		],
+	};
+}
 // set up handlebars view engine
-var handlebars = require('express3-handlebars').create({
-    defaultLayout:'main',
+var handlebars = require('express3-handlebars').create({ // package that provides Handlesbars support for Express. 
+    defaultLayout:'main', // when we created the view engine, we specified the name of the default layout
     helpers: {
         section: function(name, options){
             if(!this._sections) this._sections = {};
@@ -16,10 +44,9 @@ var handlebars = require('express3-handlebars').create({
 });
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
-
 app.set('port', process.env.PORT || 3000);
-
 app.use(express.static(__dirname + '/public'));
+app.disable('x-powered-by');
 
 // set 'showTests' context property if the querystring contains test=1
 app.use(function(req, res, next){
@@ -28,8 +55,23 @@ app.use(function(req, res, next){
 	next();
 });
 
+// create middleware to inject the dummy wather data int res.locals.partials object
+app.use(function(req, res, next){
+	if(!res.locals.partials)
+	res.locals.partials = {};
+	res.locals.partials.weatherContext = getWeatherData(); // this sets the weatherContext to equal the dummy data we are passing in. 
+	next();
+});
+
+// by default, Express looks for views in the 'views' subdirectory and 'layouts' in 'views/layouts'
 app.get('/', function(req, res) {
 	res.render('home');
+});
+app.get('/headers', function(req, res) {
+	res.set('Content-Type', 'text/plain');
+	var s = '';
+	for(var name in req.headers) s += name + ': ' + req.headers[name] + '/n';
+	res.send(s);
 });
 app.get('/about', function(req,res){
 	res.render('about', { 
