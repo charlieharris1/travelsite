@@ -34,8 +34,8 @@ function getWeatherData(){
 // set up handlebars view engine
 var handlebars = require('express3-handlebars').create({ // package that provides Handlesbars support for Express. 
     defaultLayout:'main', // when we created the view engine, we specified the name of the default layout
-    helpers: {
-        section: function(name, options){
+    helpers: { 
+        section: function(name, options){ // section is a helper
             if(!this._sections) this._sections = {};
             this._sections[name] = options.fn(this);
             return null;
@@ -87,6 +87,22 @@ app.get('/tours/oregon-coast', function(req, res){
 });
 app.get('/tours/request-group-rate', function(req, res){
 	res.render('tours/request-group-rate');
+});
+app.get('/jquery-test', function(req, res){
+	res.render('jquery-test');
+});
+// route handler for nursery rhyme page
+app.get('/nursery-rhyme', function(req, res){
+	res.render('nursery-rhyme');
+});
+// route handler for our AJAX call
+app.get('/data/nursery-rhyme', function(req, res){
+	res.json({
+		animal: 'squirrel',
+		bodyPart: 'tail',
+		adjective: 'busy',
+		noun: 'heck', 
+	});
 });
 
 // 404 catch-all handler (middleware)
