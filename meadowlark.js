@@ -1,5 +1,6 @@
 var express = require('express');
 var fortune = require('./lib/fortune.js');
+var formidable = require('formidable');
 
 var app = express();
 
@@ -63,16 +64,42 @@ app.use(function(req, res, next){
 	next();
 });
 
+// middleware to parse the URL-encoded body we will recive in the POST. Req.body is now available. 
+app.use(require('body-parser').urlencoded({extend: true}))
+
 // by default, Express looks for views in the 'views' subdirectory and 'layouts' in 'views/layouts'
 app.get('/', function(req, res) {
 	res.render('home');
 });
+
+app.get('/newsletter', function(req, res){
+	res.render('newsletter', { csrf: 'CSRF token goes here'});
+});
+
+app.post('/process', function(req, res){	
+	if(req.xhr || req.accepts('json,html')==='json'){ // req.xhr is an express conveninece method which will be true if the request is an ajax request. Req.accepts will will try to determine the most appropriate response type to return. 
+		// if there were an error we would send {error: 'error description'}
+		res.send({success: true});
+	} else {
+		// if there were an error we would redirect to an error page
+		res.redirect(303, '/thank-you');
+	}
+});
+
 app.get('/headers', function(req, res) {
 	res.set('Content-Type', 'text/plain');
 	var s = '';
 	for(var name in req.headers) s += name + ': ' + req.headers[name] + '/n';
 	res.send(s);
 });
+
+app.get('/error', function(req, res) {
+	res.render('error');
+})
+app.get('/thank-you', function(req, res){
+	res.render('thank-you');
+});
+
 app.get('/about', function(req,res){
 	res.render('about', { 
 		fortune: fortune.getFortune(),
@@ -91,10 +118,7 @@ app.get('/tours/request-group-rate', function(req, res){
 app.get('/jquery-test', function(req, res){
 	res.render('jquery-test');
 });
-// route handler for nursery rhyme page
-app.get('/nursery-rhyme', function(req, res){
-	res.render('nursery-rhyme');
-});
+
 // route handler for nursery rhyme page
 app.get('/nursery-rhyme', function(req, res){
 	res.render('nursery-rhyme');
@@ -108,6 +132,22 @@ app.get('/data/nursery-rhyme', function(req, res){
 		noun: 'heck',
 	});
 });
+app.get('/contest/vacation-photo', function(req, res){
+    var now = new Date();
+    res.render('contest/vacation-photo', { year: now.getFullYear(), month: now.getMonth() });
+});
+app.post('/contest/vacation-photo/:year/:month', function(req, res){
+    var form = new formidable.IncomingForm();
+    form.parse(req, function(err, fields, files){
+        if(err) return res.redirect(303, '/error');
+        console.log('received fields:');
+        console.log(fields);
+        console.log('received files:');
+        console.log(files);
+        res.redirect(303, '/thank-you');
+    });
+});
+
 // 404 catch-all handler (middleware)
 app.use(function(req, res, next){
 	res.status(404);
