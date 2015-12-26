@@ -95,16 +95,19 @@ app.get('/jquery-test', function(req, res){
 app.get('/nursery-rhyme', function(req, res){
 	res.render('nursery-rhyme');
 });
+// route handler for nursery rhyme page
+app.get('/nursery-rhyme', function(req, res){
+	res.render('nursery-rhyme');
+});
 // route handler for our AJAX call
 app.get('/data/nursery-rhyme', function(req, res){
 	res.json({
 		animal: 'squirrel',
 		bodyPart: 'tail',
-		adjective: 'busy',
-		noun: 'heck', 
+		adjective: 'bushy',
+		noun: 'heck',
 	});
 });
-
 // 404 catch-all handler (middleware)
 app.use(function(req, res, next){
 	res.status(404);
