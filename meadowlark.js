@@ -1,6 +1,8 @@
 var express = require('express');
 var fortune = require('./lib/fortune.js');
 var formidable = require('formidable');
+var jqupload = require('jquery-file-upload-middleware');
+var credentials = require('./credentials.js');
 
 var app = express();
 
@@ -65,7 +67,25 @@ app.use(function(req, res, next){
 });
 
 // middleware to parse the URL-encoded body we will recive in the POST. Req.body is now available. 
-app.use(require('body-parser').urlencoded({extend: true}))
+app.use(require('body-parser').urlencoded({extend: true}));
+
+// cookie-parser middleware
+app.use(require('cookie-parser')(credentials.cookieSecret));
+
+// express-session middleware
+app.use(require('express-session')({
+	resave: false, // forces session to be saved back to the store even if the request wasn't modified
+	saveUninitialized: false, // setting this to true causes new sessions to be saved to the store, even if they haven't been modified (need to be false when you need to task  the users permission)
+	secret: credentials.cookieSecret, // the key used to 
+}));
+
+// this middleware adds the flash object to the context if theres one in the session. 
+app.use(function(req, res, next){
+	// if there is a flash message, transfer it to the context then clear it
+	res.locals.flash = req.session.flash;
+	delete req.session.flash;
+	next();
+})
 
 // by default, Express looks for views in the 'views' subdirectory and 'layouts' in 'views/layouts'
 app.get('/', function(req, res) {
