@@ -45,11 +45,14 @@ var handlebars = require('express3-handlebars').create({ // package that provide
         }
     }
 });
+
 app.engine('handlebars', handlebars.engine);
+app.disable('x-powered-by');
 app.set('view engine', 'handlebars');
 app.set('port', process.env.PORT || 3000);
+
+// app.use inserts middleware into the pipeline
 app.use(express.static(__dirname + '/public'));
-app.disable('x-powered-by');
 
 // set 'showTests' context property if the querystring contains test=1
 app.use(function(req, res, next){
