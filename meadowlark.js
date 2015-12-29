@@ -3,6 +3,7 @@ var fortune = require('./lib/fortune.js');
 var formidable = require('formidable');
 var jqupload = require('jquery-file-upload-middleware');
 var credentials = require('./credentials.js');
+var emailService = require('./lib/email');
 
 var app = express();
 
@@ -155,10 +156,12 @@ app.get('/data/nursery-rhyme', function(req, res){
 		noun: 'heck',
 	});
 });
+
 app.get('/contest/vacation-photo', function(req, res){
     var now = new Date();
     res.render('contest/vacation-photo', { year: now.getFullYear(), month: now.getMonth() });
 });
+
 app.post('/contest/vacation-photo/:year/:month', function(req, res){
     var form = new formidable.IncomingForm();
     form.parse(req, function(err, fields, files){
@@ -169,6 +172,37 @@ app.post('/contest/vacation-photo/:year/:month', function(req, res){
         console.log(files);
         res.redirect(303, '/thank-you');
     });
+});
+
+app.post('/cart/checkout', function(req, res){
+	var cart = req.session.cart;
+	if(!cart) next(new Error('Cart does not exist'));
+	var name = req.body.name || '', 
+		email = req.body.email || '';
+	// input validation
+	if(!email.match(VALID_EMAIL_REGEX))
+		return res.next(new Error('Invalid email address.'));
+	// assign random cart ID; normally we would use database id here
+	cart.number = Math.random().toString().replace(/^0\.0*/, '');
+	cart.billing = {
+		name: name,
+		email: email,
+	};
+	// Renders a view and sends the rendered HTML string to the client. A callback function is an optional parameter. If provided, the method returns both the possible error and rendered string. When an error occurs, the method invokes next(err) internally.
+    res.render('email/cart-thank-you', 
+    	{ layout: null, cart: cart }, function(err,html){
+	        if( err ) console.log('error in email template');
+	        emailService.send(cart.billing.email,
+	        	'Thank you for booking your trip with Meadowlark Travel!',
+	        	html);
+	    }
+    );
+	/* This is the second time that res.render is called. Ordinarily you would call it once
+	   becuase calling it twice will display only the results of the first call. 
+	   However, in this instance we're circumventing the normal rendering process the first time we call it: notice that we provide a callback. 
+	   Doing this prevents the results of the view being rendered in to the browser. The callback recives a rendered view view in the parameter html: all we need to do is take the rendered HTML and send the email.
+	 */
+	res.render('cart-thank-you', { cart: cart }); // this page is rendered once the email has been sent above.
 });
 
 // 404 catch-all handler (middleware)
