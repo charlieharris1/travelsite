@@ -73,6 +73,18 @@ app.use(function(req, res, next){
 // middleware to parse the URL-encoded body we will recive in the POST. Req.body is now available. 
 app.use(require('body-parser').urlencoded({extend: true}));
 
+// adding logging to the application
+switch(app.get('env')){
+	case 'development': 
+		// compact, colourful dev logging
+		app.use(require('morgan')('dev'));
+		break;
+		// module 'express-logger' supports daily log rotation
+	case 'production': 
+		app.use(require('express-logger')({ path: __dirname + '/log/requests.log'}));
+		break;
+}
+
 // cookie-parser middleware
 app.use(require('cookie-parser')(credentials.cookieSecret));
 
@@ -220,5 +232,6 @@ app.use(function(err, req, res, next){
 
 app.listen(app.get('port'), function(){
   console.log( 'Express started on http://localhost:' + 
+  	app.get('env') + 'mode on http://localhost:' +
     app.get('port') + '; press Ctrl-C to terminate.' );
 });

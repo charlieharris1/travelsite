@@ -21,11 +21,13 @@
     "chai": "~1.9.1",
     "cookie-parser": "^1.4.0",
     "express": "~4.4.2",
+    "express-logger": "0.0.3",
     "express-session": "^1.12.1",
     "express3-handlebars": "~0.5.0",
     "formidable": "^1.0.17",
     "jquery": "^2.1.4",
     "jquery-file-upload-middleware": "^0.1.7",
+    "morgan": "^1.6.1",
     "nodemailer": "^1.11.0"
   },
   "devDependencies": {
