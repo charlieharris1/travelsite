@@ -52,6 +52,47 @@ app.disable('x-powered-by');
 app.set('view engine', 'handlebars');
 app.set('port', process.env.PORT || 3000);
 
+// domains can be used for better error handling
+app.use(function(req, res, next){
+	// create domain for this request
+	var domain = require('domain').create();
+	// attach an error handler to this domian
+	domain.on('error', function(err){ // this function will be invoked any time an uncaught error occurs in the domain
+		// we want to respond appropriately to any in-progress requests and then shut down the server. 
+		console.error('DOMAIN ERROR CAUGHT\n', err.stack);
+		try{
+			// failsafe shutdown in 5 seconds. Were allowign the server five seconds to respond to any in-progress requests (if it can). 
+			setTimeout(function(){
+				console.error('Failsafe shutdown.')
+				process.exit(1);
+			}, 5000);
+			// disconnect from the cluster
+			var worker = require('cluster').worker; 
+			if(worker) worker.disconnect(); // disconnect from the cluster (if were in a cluster), which should prevent the cluster from assigining us any more requests. 
+			// tells the server that we are no longer accepting new connections
+			server.close();
+			try {
+				// attempt to respond to the request that generated the error by passing on to the error handling route (next(err))
+				next(err);
+			} catch(error){
+				// if Express error route failed we fall back to trying to respond with the plain node API 
+				console.error('Express error mechanism failed.\n', error.stack);
+				res.statusCode = 500; 
+				res.setHeader('content-type', 'text/plain');
+				res.end('Server error.');
+			}
+		} catch(error){
+			// if all else fails we log the error (the client will recieve no response and eventually time out)
+			console.error('Unable to send 500 response.\n', error.stack);
+		}
+	});
+	// add request and response objects to the domain. This allows any methods on those objects that throw an error to be handled by the domain. 	
+	domain.add(req);
+	domain.add(res);
+	//execute the rest of the request chain in the domain
+	domain.run(next); // this effectively runs all middleware in the pipeline in the domain since calls to next are chained. 
+});
+
 // app.use inserts middleware into the pipeline
 app.use(express.static(__dirname + '/public'));
 
@@ -106,6 +147,15 @@ app.use(function(req, res, next){
 // by default, Express looks for views in the 'views' subdirectory and 'layouts' in 'views/layouts'
 app.get('/', function(req, res) {
 	res.render('home');
+});
+
+app.get('/epic-fail', function(req, res){
+	// execution of the function with the exception is being deferred until node is idle. 
+	// However, when node is idle and gets round to executing the function it doesn't have context
+	// about the request it was being served from. So now it shuts down the server because its in an undefined state. 
+	process.nextTick(function(){ // this is very similar to setTimeout with an argument of zero
+		throw new Error('Kaboom!');
+	});
 });
 
 app.get('/newsletter', function(req, res){
@@ -230,8 +280,19 @@ app.use(function(err, req, res, next){
 	res.render('500');
 });
 
-app.listen(app.get('port'), function(){
-  console.log( 'Express started on http://localhost:' + 
-  	app.get('env') + 'mode on http://localhost:' +
-    app.get('port') + '; press Ctrl-C to terminate.' );
-});
+// This modification allows meadowlark.js to either be run directly using "node meadowlark.js" or included as a module via a require statement. 
+function startServer(){
+    app.listen(app.get('port'), function(){
+      console.log( 'Express started in ' + app.get('env') +
+        ' mode on http://localhost:' + app.get('port') +
+        '; press Ctrl-C to terminate.' );
+    });
+}
+
+if(require.main === module){ // true when a script is run directly. False would mean that the script has been loaded from another script using require. 
+    // application run directly; start app server    
+    startServer();
+} else {
+    // application imported as a module via "require": export function to create server
+    module.exports = startServer;
+}
