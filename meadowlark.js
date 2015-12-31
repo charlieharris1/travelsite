@@ -63,7 +63,7 @@ app.use(function(req, res, next){
 		try{
 			// failsafe shutdown in 5 seconds. Were allowign the server five seconds to respond to any in-progress requests (if it can). 
 			setTimeout(function(){
-				console.error('Failsafe shutdown.')
+				console.error('Failsafe shutdown.');
 				process.exit(1);
 			}, 5000);
 			// disconnect from the cluster
@@ -142,7 +142,7 @@ app.use(function(req, res, next){
 	res.locals.flash = req.session.flash;
 	delete req.session.flash;
 	next();
-})
+});
 
 // by default, Express looks for views in the 'views' subdirectory and 'layouts' in 'views/layouts'
 app.get('/', function(req, res) {
@@ -181,7 +181,8 @@ app.get('/headers', function(req, res) {
 
 app.get('/error', function(req, res) {
 	res.render('error');
-})
+});
+
 app.get('/thank-you', function(req, res){
 	res.render('thank-you');
 });
